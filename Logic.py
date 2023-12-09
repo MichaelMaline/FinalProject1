@@ -73,8 +73,8 @@ class Logic(QMainWindow, Ui_DemographicInfo):
         Process participant information and move to the next stage.
         """
         print(f"NameBox text: {self.ui.NameBox.text()}")
-        if self.ui.NameBox.text().isalpha():
-            self.name = self.ui.NameBox.text()
+        if self.ui.NameBox.text().replace(" ", "").isalpha():
+            self.name = self.ui.NameBox.text().rstrip()
             print("here")
             if self.ui.Citizen_button.isChecked():
                 self.citizen = 'Citizen'
@@ -106,7 +106,7 @@ class Logic(QMainWindow, Ui_DemographicInfo):
             else:
                 self.party = 'No Reply'
             self.ui.Candidates_Label.setVisible(True)
-            self.ui.label_21.setVisible(True)
+            self.ui.label_21.setVisible(False)
             self.ui.John_Candidate.setVisible(True)
             self.ui.John_Slogan.setVisible(True)
             self.ui.John_Party.setVisible(True)
@@ -142,9 +142,14 @@ class Logic(QMainWindow, Ui_DemographicInfo):
             self.ui.Error_Label.setVisible(False)
             self.ui.Other_button.setVisible(False)
             # Demographic guys
+
+        elif self.ui.NameBox.text() == '':
+            self.ui.Error_Label.setText("Please enter your name")
+            self.ui.Error_Label.setVisible(True)
+
         else:
-            self.ui.Error_Label.setText("Name is A-Z only")
-            self.ui.Error_Label.isVisible(True)
+            self.ui.Error_Label.setText("Name is letters only")
+            self.ui.Error_Label.setVisible(True)
 
     def clear(self):
         """
@@ -161,7 +166,6 @@ class Logic(QMainWindow, Ui_DemographicInfo):
         self.ui.Jane_Button.setChecked(False)
         self.ui.John_Button.setChecked(False)
         self.ui.Jane_Button.setChecked(False)
-
 
     def cast_vote(self):
         """
@@ -254,6 +258,10 @@ class Logic(QMainWindow, Ui_DemographicInfo):
         else:
             self.ui.label_21.setText("Select your Candidate!")
             self.ui.label_21.setVisible(True)
+        self.ui.John_Button.setAutoExclusive(False)
+        self.ui.John_Button.setChecked(False)
+        self.ui.Jane_Button.setChecked(False)
+        self.ui.John_Button.setAutoExclusive(True)
 
     def finish_poll(self):
         """
@@ -269,15 +277,11 @@ class Logic(QMainWindow, Ui_DemographicInfo):
             john_list = [vote for vote in self.votes if vote[-1] == 'John']
             jane_list = [vote for vote in self.votes if vote[-1] == 'Jane']
 
-            john_citizen_type, john_citizen_count = self.count_citizen(john_list)
-            john_married_type, john_married_count = self.count_married(john_list)
-            john_employed_type, john_employed_count = self.count_employed(john_list)
-            john_party_type, john_party_count = self.count_party(john_list)
+            (john_citizen_type, john_citizen_count, john_married_type, john_married_count, john_employed_type,
+             john_employed_count, john_party_type, john_party_count) = self.count(john_list)
 
-            jane_citizen_type, jane_citizen_count = self.count_citizen(jane_list)
-            jane_married_type, jane_married_count = self.count_married(jane_list)
-            jane_employed_type, jane_employed_count = self.count_employed(jane_list)
-            jane_party_type, jane_party_count = self.count_party(jane_list)
+            (jane_citizen_type, jane_citizen_count, jane_married_type, jane_married_count, jane_employed_type,
+             jane_employed_count, jane_party_type, jane_party_count) = self.count(jane_list)
 
             john_votes = len(john_list)
             jane_votes = len(jane_list)
@@ -337,6 +341,41 @@ class Logic(QMainWindow, Ui_DemographicInfo):
             self.ui.Jane_Employed.setVisible(True)
             self.ui.Jane_Voted_Party.setVisible(True)
 
+    def count(self, list_1):
+        """
+        Analyzes a list of demographic information and counts the occurrences of various categories.
+
+        Args:
+            list_1 (list): A list containing demographic information, where each element is a sublist with the
+                          structure [citizenship, marital status, employment status, party affiliation].
+
+        Returns:
+            tuple: A tuple containing counts and types for different categories, including:
+                   - Citizenship type and count
+                   - Marital status type and count
+                   - Employment status type and count
+                   - Party affiliation type and count
+
+                   If the input list is empty, default values of 'none' and 0 are returned for each category.
+        """
+        if len(list_1) != 0:
+            john_citizen_type, john_citizen_count = self.count_citizen(list_1)
+            john_married_type, john_married_count = self.count_married(list_1)
+            john_employed_type, john_employed_count = self.count_employed(list_1)
+            john_party_type, john_party_count = self.count_party(list_1)
+            return (john_citizen_type, john_citizen_count, john_married_type, john_married_count, john_employed_type,
+                    john_employed_count, john_party_type, john_party_count)
+        else:
+            john_citizen_type = 'none'
+            john_citizen_count = 0
+            john_married_type = 'none'
+            john_married_count = 0
+            john_employed_type = 'none'
+            john_employed_count = 0
+            john_party_type = 'none'
+            john_party_count = 0
+            return (john_citizen_type, john_citizen_count, john_married_type, john_married_count, john_employed_type,
+                    john_employed_count, john_party_type, john_party_count)
 
     def count_citizen(self, list_1):
         """
@@ -360,13 +399,12 @@ class Logic(QMainWindow, Ui_DemographicInfo):
                 noncitizen_count += 1
             else:
                 no_reply_count += 1
-        if citizen_count == max(citizen_count,noncitizen_count,no_reply_count):
+        if citizen_count == max(citizen_count, noncitizen_count, no_reply_count):
             return "Citizen", citizen_count
-        elif noncitizen_count == max(citizen_count,noncitizen_count,no_reply_count):
+        elif noncitizen_count == max(citizen_count, noncitizen_count, no_reply_count):
             return "Non-Citizen", noncitizen_count
         else:
             return "No Reply", no_reply_count
-
 
     def count_married(self, list_1):
         """
@@ -388,15 +426,15 @@ class Logic(QMainWindow, Ui_DemographicInfo):
             elif list_1[i][2] == "Widow/Widower":
                 widowed_count += 1
             elif list_1[i][2] == "Single/Unmarried":
-                single_count +=1
+                single_count += 1
 
             else:
                 no_reply_count += 1
-        if married_count == max(married_count,widowed_count,single_count,no_reply_count):
+        if married_count == max(married_count, widowed_count, single_count, no_reply_count):
             return "Married", married_count
-        elif widowed_count == max(married_count,widowed_count,single_count,no_reply_count):
+        elif widowed_count == max(married_count, widowed_count, single_count, no_reply_count):
             return "Widow/Widower", widowed_count
-        elif single_count == max(married_count,widowed_count,single_count,no_reply_count):
+        elif single_count == max(married_count, widowed_count, single_count, no_reply_count):
             return "Single/Unmarried", single_count
         else:
             return "No Reply", no_reply_count
@@ -421,9 +459,9 @@ class Logic(QMainWindow, Ui_DemographicInfo):
                 unemployed_count += 1
             else:
                 no_reply_count += 1
-        if employed_count == max(employed_count,unemployed_count,no_reply_count):
+        if employed_count == max(employed_count, unemployed_count, no_reply_count):
             return "Employed", employed_count
-        elif unemployed_count == max(employed_count,unemployed_count,no_reply_count):
+        elif unemployed_count == max(employed_count, unemployed_count, no_reply_count):
             return "Unemployed", unemployed_count
         else:
             return "No Reply", no_reply_count
@@ -452,11 +490,11 @@ class Logic(QMainWindow, Ui_DemographicInfo):
 
             else:
                 no_reply_count += 1
-        if pro_count == max(pro_count,anti_count,other_count,no_reply_count):
+        if pro_count == max(pro_count, anti_count, other_count, no_reply_count):
             return "Pro-Pasta", pro_count
-        elif anti_count == max(pro_count,anti_count,other_count,no_reply_count):
+        elif anti_count == max(pro_count, anti_count, other_count, no_reply_count):
             return "Anti-Pasta", anti_count
-        elif other_count == max(pro_count,anti_count,other_count,no_reply_count):
+        elif other_count == max(pro_count, anti_count, other_count, no_reply_count):
             return "Other", other_count
         else:
             return "No Reply", no_reply_count
