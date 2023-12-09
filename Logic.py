@@ -160,12 +160,6 @@ class Logic(QMainWindow, Ui_DemographicInfo):
         self.ui.NoReply_Married.setChecked(True)
         self.ui.NoReply_Employment.setChecked(True)
         self.ui.NoReply_Party.setChecked(True)
-        self.ui.John_Button.setChecked(True)
-        self.ui.Jane_Button.setChecked(True)
-        self.ui.John_Button.setChecked(False)
-        self.ui.Jane_Button.setChecked(False)
-        self.ui.John_Button.setChecked(False)
-        self.ui.Jane_Button.setChecked(False)
 
     def cast_vote(self):
         """
